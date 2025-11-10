@@ -12,3 +12,5 @@ export type DeckResponse = {
     remaining: number,
     shuffled: boolean
 }
+
+export type GameState = "active" | "not active"
