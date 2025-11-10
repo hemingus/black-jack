@@ -13,7 +13,7 @@ export default function PlayerCards({cards}: PlayerCardsProps) {
   
     return (
         <div className="player-cards">
-            <h2>Player Cards</h2>
+            <h3>Player Cards</h3>
             <div className="card-container">
                 {cards.map((card, index) => <img key={card.code + index} style={{width: "100px"}} src={card.image}/>)}
             </div>
