@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { getNewDeck, drawCards, shuffleDeck } from "../api/DeckOfCards"
+import { translateCardValue, getCardSum } from "../gameUtils";
 import { type Card, type GameState } from "../types";
 import PlayerCards from "./PlayerCards";
 import Sum from "./Sum";
@@ -7,7 +8,7 @@ import DealerCards from "./DealerCards";
 
 export default function BlackJack() {
     const [loading, setLoading] = useState<boolean>(false);
-    const [gameState, setGameState] = useState<GameState>("active");
+    const [gameState, setGameState] = useState<GameState>("not active");
     const [deckId, setDeckId] = useState<string | null>(null);
 
     const [dealerCards, setDealerCards] = useState<Array<Card>>([]);
@@ -34,15 +35,26 @@ export default function BlackJack() {
 
     useEffect(() => {
         if (getCardSum(playerCards) > 21) {
-            setGameMessage("Player bust... Dealer Wins!")
+            setPlayerBust(true);
         } else if (getCardSum(dealerCards) > 21) {
-            setGameMessage("Dealer bust... Player Wins!")
+            setDealerBust(true);
         }
     }, [playerCards, dealerCards])
 
-    function shuffle() {
+    useEffect(() => {
+        if (gameState === "active") {
+            determineWinner();
+        }
+    }, [playerBust, dealerBust])
+
+    function startNewRound() {
+        setPlayerBust(false);
+        setDealerBust(false);
         setGameState("active");
         setGameMessage("Hit or Stand ?");
+        shuffle();
+    }
+    function shuffle() {
         if (deckId) {
             shuffleDeck(deckId);
             setPlayerCards([]);
@@ -66,57 +78,34 @@ export default function BlackJack() {
             dealerSum += Number(translateCardValue(card.value));
         }
         if (dealerSum < 17) {
-            dealerHit(dealerSum);
-        } else {
-            determineWinner();
-            setGameState("not active");
+            await dealerHit(dealerSum);
+        } else if (dealerSum > 21) {
+            setDealerBust(true);
         }
     }
 
-    function stand() {
-        dealerHit(getCardSum(dealerCards));
+    async function stand() {
+        await dealerHit(getCardSum(dealerCards));
         determineWinner();
+        setGameState("not active");
     }
 
     function determineWinner() {
+        console.log(`DealerSUM: ${getCardSum(dealerCards)}`)
         if (playerBust) {
-            return "Dealer Wins!"
+            setGameMessage("Player bust... Dealer Wins!");
         } else if (dealerBust) {
-            return "Player Wins!"
+            setGameMessage("Dealer bust... Player Wins!");
         } else {
             if (getCardSum(playerCards) > getCardSum(dealerCards)) {
-                return "Player Wins!"
+                setGameMessage("Player Wins!");
             } else if (getCardSum(playerCards) < getCardSum(dealerCards)) {
-                return "Dealer Wins!"
-            } return "It's a tie!"
+                setGameMessage("Dealer Wins!");
+            } else setGameMessage("It's a tie!");
         }
+        setGameState("not active");
     }
 
-    function translateCardValue(value: string) {
-        switch (value) {
-            case "ACE":
-                return "11";
-            case "JACK":
-                return "10";
-            case "QUEEN":
-                return "10";
-            case "KING":
-                return "10";
-            default:
-                return value;
-        }
-    }
-
-    function getCardSum(cards: Array<Card>) {
-        const values: number[] = []
-        cards.forEach(card => {
-            values.push(Number(translateCardValue(card.value)))
-        })
-        const sum = values.reduce((acc, current) => {
-            return acc + current
-        }, 0);
-        return sum;
-    }
     return (
         loading ? <p>loading...</p> :
         <div>
@@ -134,7 +123,7 @@ export default function BlackJack() {
                 {playerCards && <PlayerCards cards={playerCards}/>}
                 <Sum title="Player" sum={getCardSum(playerCards)}/>
             </div>
-            {gameState === "not active" && <button onClick={shuffle}>Start new game</button>}
+            {gameState === "not active" && <button onClick={startNewRound}>Start new round</button>}
 
         </div>
     )
