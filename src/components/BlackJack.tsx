@@ -12,9 +12,7 @@ export default function BlackJack() {
     const [deckId, setDeckId] = useState<string | null>(null);
 
     const [dealerCards, setDealerCards] = useState<Array<Card>>([]);
-    const [dealerBust, setDealerBust] = useState<boolean>(false);
     const [playerCards, setPlayerCards] = useState<Array<Card>>([]);
-    const [playerBust, setPlayerBust] = useState<boolean>(false);
     
     const [gameMessage, setGameMessage] = useState<string>("Hit or Stand ?");
 
@@ -33,23 +31,7 @@ export default function BlackJack() {
         initDeck();
     }, [])
 
-    useEffect(() => {
-        if (getCardSum(playerCards) > 21) {
-            setPlayerBust(true);
-        } else if (getCardSum(dealerCards) > 21) {
-            setDealerBust(true);
-        }
-    }, [playerCards, dealerCards])
-
-    useEffect(() => {
-        if (gameState === "active") {
-            determineWinner();
-        }
-    }, [playerBust, dealerBust])
-
     function startNewRound() {
-        setPlayerBust(false);
-        setDealerBust(false);
         setGameState("active");
         setGameMessage("Hit or Stand ?");
         shuffle();
@@ -63,47 +45,50 @@ export default function BlackJack() {
     }
 
     async function playerHit() {
-        if (deckId) {
-            const data = await drawCards(deckId, 1);
-            const card = data.cards[0];
-            setPlayerCards(prev => [...prev, card]);
-        }
+        if (!deckId) return;
+        const data = await drawCards(deckId, 1);
+        const card = data.cards[0];
+        setPlayerCards(prev => {
+            const newHand = [...prev, card];
+            const sum = getCardSum(newHand);
+            if (sum > 21) {
+                setGameMessage("Player bust - Dealer Wins!");
+                setGameState("not active");
+            }
+            return newHand;
+        });
     }
 
-    async function dealerHit(dealerSum: number) {
-        if (deckId) {
+    async function dealerHit() {
+        if (!deckId) return 
+        let dealerHand = [...dealerCards];
+        let dealerSum = getCardSum(dealerHand);
+        while (dealerSum < 17){
             const data = await drawCards(deckId, 1);
             const card = data.cards[0];
-            setDealerCards(prev => [...prev, card]);
+            dealerHand.push(card);
             dealerSum += Number(translateCardValue(card.value));
         }
-        if (dealerSum < 17) {
-            await dealerHit(dealerSum);
-        } else if (dealerSum > 21) {
-            setDealerBust(true);
+        if (dealerSum > 21) {
+            setDealerCards(dealerHand)
+            setGameMessage("Dealer bust - Player Wins!");
+            setGameState("not active");
+        } else {
+        setDealerCards(dealerHand);
+        setGameMessage(determineWinner(dealerSum));
+        setGameState("not active");
         }
     }
 
     async function stand() {
-        await dealerHit(getCardSum(dealerCards));
-        determineWinner();
-        setGameState("not active");
+        await dealerHit();
     }
 
-    function determineWinner() {
-        console.log(`DealerSUM: ${getCardSum(dealerCards)}`)
-        if (playerBust) {
-            setGameMessage("Player bust... Dealer Wins!");
-        } else if (dealerBust) {
-            setGameMessage("Dealer bust... Player Wins!");
-        } else {
-            if (getCardSum(playerCards) > getCardSum(dealerCards)) {
-                setGameMessage("Player Wins!");
-            } else if (getCardSum(playerCards) < getCardSum(dealerCards)) {
-                setGameMessage("Dealer Wins!");
-            } else setGameMessage("It's a tie!");
-        }
-        setGameState("not active");
+    function determineWinner(dealerSum: number) {
+        const playerSum = getCardSum(playerCards);
+        if (dealerSum > playerSum) return "Dealer wins!";
+        else if (dealerSum < playerSum) return "Player wins!";
+        return "It's a tie!";
     }
 
     return (
@@ -124,7 +109,6 @@ export default function BlackJack() {
                 <Sum title="Player" sum={getCardSum(playerCards)}/>
             </div>
             {gameState === "not active" && <button onClick={startNewRound}>Start new round</button>}
-
         </div>
     )
 }
