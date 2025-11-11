@@ -2,6 +2,8 @@ import { type DeckResponse } from "../types";
 
 const BASE_URL =  "https://deckofcardsapi.com/api/deck"
 
+export const cardBackImageURL = "https://deckofcardsapi.com/static/img/back.png"
+
 export async function getNewDeck(deckCount: number) {
     try {
         const res = await fetch(`${BASE_URL}/new/shuffle/?deck_count=${deckCount}`);
