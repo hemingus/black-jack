@@ -38,17 +38,3 @@ import { type Card } from "./types";
         }
         return sum;
     }
-    
-    export function determineWinner(playerBust: boolean, dealerBust: boolean, playerCards: Array<Card>, dealerCards: Array<Card>) {
-        if (playerBust) {
-            return "Player bust... Dealer Wins!"
-        } else if (dealerBust) {
-            return "Dealer bust... Player Wins!"
-        } else {
-            if (getCardSum(playerCards) > getCardSum(dealerCards)) {
-                return "Player Wins!"
-            } else if (getCardSum(playerCards) < getCardSum(dealerCards)) {
-                return "Dealer Wins!"
-            } return "It's a tie!"
-        }
-    }
