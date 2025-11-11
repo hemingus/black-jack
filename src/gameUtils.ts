@@ -30,7 +30,7 @@ import { type Card } from "./types";
             return sum;
         }
         for (let i = 0; i < aces.length; i++) {
-            if (sum <= 10) {
+            if (sum <= 11-aces.length) {
                 sum += 11;
             } else {
                 sum += 1;
