@@ -13,7 +13,7 @@ export default function BlackJack() {
 
     const [dealerCards, setDealerCards] = useState<Array<Card>>([]);
     const [playerCards, setPlayerCards] = useState<Array<Card>>([]);
-    
+    const [showDown, setShowDown] = useState<boolean>(true);
     const [gameMessage, setGameMessage] = useState<string>("Hit or Stand ?");
 
     useEffect(() => {
@@ -31,16 +31,46 @@ export default function BlackJack() {
         initDeck();
     }, [])
 
-    function startNewRound() {
+    async function startNewRound() {
+        setShowDown(false);
         setGameState("active");
         setGameMessage("Hit or Stand ?");
-        shuffle();
+        await shuffle()
+            .then(async () => await dealNewHands());
     }
-    function shuffle() {
+    async function shuffle() {
         if (deckId) {
-            shuffleDeck(deckId);
-            setPlayerCards([]);
-            setDealerCards([]);
+            await shuffleDeck(deckId);
+        }
+    }
+
+    function resolveRound() {
+        setShowDown(true);
+        setGameState("not active");
+    }
+
+    function checkBlackJack(playerHand: Card[], dealerHand: Card[]) {
+        const playerSum: number = getCardSum(playerHand);
+        const dealerSum: number = getCardSum(dealerHand);
+        if (playerSum === 21 || dealerSum === 21) {
+            resolveRound();
+        }
+        if (playerSum === 21 && dealerSum === 21) {
+            setGameMessage("Double BlackJack! - It's a tie!");
+        } else if (playerSum === 21) {
+            setGameMessage("BlackJack! - Player Wins!");
+        } else if (dealerSum === 21) {
+            setGameMessage("Dealer has BlackJack! - Dealer Wins!");
+        }
+    }
+
+    async function dealNewHands() {
+        if (deckId) {
+            const playerDraw = await drawCards(deckId, 2);
+            const dealerDraw = await drawCards(deckId, 2);
+            checkBlackJack(playerDraw.cards, dealerDraw.cards);
+            setPlayerCards(playerDraw.cards);
+            setDealerCards(dealerDraw.cards);
         }
     }
 
@@ -60,6 +90,7 @@ export default function BlackJack() {
     }
 
     async function dealerHit() {
+        setShowDown(true);
         if (!deckId) return 
         let dealerHand = [...dealerCards];
         let dealerSum = getCardSum(dealerHand);
@@ -76,8 +107,8 @@ export default function BlackJack() {
         } else {
         setDealerCards(dealerHand);
         setGameMessage(determineWinner(dealerSum));
-        setGameState("not active");
         }
+        resolveRound();
     }
 
     async function stand() {
@@ -99,8 +130,8 @@ export default function BlackJack() {
             {/* <button onClick={handleDealCards}>Get cards</button> */}            
             <div>
                 <h2 style={{color: "orange"}}>{gameMessage}</h2>
-                <DealerCards cards={dealerCards}/>
-                <Sum title="Dealer" sum={getCardSum(dealerCards)}/>
+                <DealerCards cards={dealerCards} showDown={showDown}/>
+                {dealerCards.length > 0 && <Sum title="Dealer" sum={showDown ? getCardSum(dealerCards) : getCardSum([dealerCards[0]])}/>}
                 {gameState === "active" &&
                 <>
                 <button onClick={playerHit}>Hit</button>
