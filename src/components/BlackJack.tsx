@@ -67,7 +67,7 @@ export default function BlackJack() {
             const data = await drawCards(deckId, 1);
             const card = data.cards[0];
             dealerHand.push(card);
-            dealerSum += Number(translateCardValue(card.value));
+            dealerSum = getCardSum(dealerHand);
         }
         if (dealerSum > 21) {
             setDealerCards(dealerHand)
