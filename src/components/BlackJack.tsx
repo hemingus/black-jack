@@ -86,6 +86,8 @@ export default function BlackJack() {
 
     function determineWinner(dealerSum: number) {
         const playerSum = getCardSum(playerCards);
+        console.log(`dealer sum: ${dealerSum}, player sum: ${playerSum}`);
+        
         if (dealerSum > playerSum) return "Dealer wins!";
         else if (dealerSum < playerSum) return "Player wins!";
         return "It's a tie!";
@@ -96,7 +98,7 @@ export default function BlackJack() {
         <div>
             {/* <button onClick={handleDealCards}>Get cards</button> */}            
             <div>
-                <h2 style={{color: "gold"}}>{gameMessage}</h2>
+                <h2 style={{color: "orange"}}>{gameMessage}</h2>
                 <DealerCards cards={dealerCards}/>
                 <Sum title="Dealer" sum={getCardSum(dealerCards)}/>
                 {gameState === "active" &&
