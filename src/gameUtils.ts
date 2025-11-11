@@ -2,8 +2,6 @@ import { type Card } from "./types";
     
     export function translateCardValue(value: string) {
             switch (value) {
-                case "ACE":
-                    return "11";
                 case "JACK":
                     return "10";
                 case "QUEEN":
@@ -14,18 +12,33 @@ import { type Card } from "./types";
                     return value;
             }
         }
-    
+
     export function getCardSum(cards: Array<Card>) {
-        const values: number[] = []
+        const values: number[] = [];
+        const aces: string[] = [];
         cards.forEach(card => {
-            values.push(Number(translateCardValue(card.value)))
+            if (card.value === "ACE") {
+                aces.push(card.value);
+            } else {
+                values.push(Number(translateCardValue(card.value)))
+            }
         })
-        const sum = values.reduce((acc, current) => {
-            return acc + current
+        let sum = values.reduce((acc, curr) => {
+            return acc + curr;
         }, 0);
+        if (aces.length === 0) {
+            return sum;
+        }
+        for (let i = 0; i < aces.length; i++) {
+            if (sum <= 10) {
+                sum += 11;
+            } else {
+                sum += 1;
+            }
+        }
         return sum;
     }
-
+    
     export function determineWinner(playerBust: boolean, dealerBust: boolean, playerCards: Array<Card>, dealerCards: Array<Card>) {
         if (playerBust) {
             return "Player bust... Dealer Wins!"
