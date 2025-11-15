@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { getNewDeck, drawCards, shuffleDeck } from "../api/DeckOfCards"
-import { translateCardValue, getCardSum } from "../gameUtils";
+import { getCardSum } from "../gameUtils";
 import { type Card, type GameState } from "../types";
 import PlayerCards from "./PlayerCards";
 import Sum from "./Sum";
