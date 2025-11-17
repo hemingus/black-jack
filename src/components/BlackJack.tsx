@@ -128,7 +128,7 @@ export default function BlackJack() {
         loading ? <p>loading...</p> :
         <div>
             {/* <button onClick={handleDealCards}>Get cards</button> */}            
-            <div>
+            <div className="flex-col bg-amber-700">
                 <h2 style={{color: "orange"}}>{gameMessage}</h2>
                 <DealerCards cards={dealerCards} showDown={showDown}/>
                 {dealerCards.length > 0 && <Sum title="Dealer" sum={showDown ? getCardSum(dealerCards) : getCardSum([dealerCards[0]])}/>}
