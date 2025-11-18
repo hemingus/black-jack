@@ -17,7 +17,7 @@ export default function BlackJack() {
     const [betAmount, setBetAmount] = useState<number>(0);
     const [playerMoney, setPlayerMoney] = useState<number>(500);
     const [showDown, setShowDown] = useState<boolean>(true);
-    const [gameMessage, setGameMessage] = useState<string>("Welcome to the blackjack table!");
+    const [gameMessage, setGameMessage] = useState<string>("May I take your bet?");
 
     useEffect(() => {
         async function initDeck() {   
@@ -35,8 +35,13 @@ export default function BlackJack() {
     }, [])
 
     async function startNewRound() {
-        if (betAmount > playerMoney) {
-            setGameMessage(`Max bet is ${playerMoney}`);
+        if (playerMoney <= 0) {
+             setGameState("game over");
+             setGameMessage("Game Over!")
+             return;
+        }
+        if (betAmount > playerMoney || betAmount <= 0) {
+            setGameMessage(`<<< Valid bet amount is between 1 and ${playerMoney} >>>`);
             return
         }
         setPlayerMoney(prev => prev - betAmount);
@@ -65,9 +70,10 @@ export default function BlackJack() {
         }
         if (playerSum === 21 && dealerSum === 21) {
             setGameMessage("Double BlackJack! - It's a tie!");
+            setPlayerMoney(prev => prev + betAmount)
         } else if (playerSum === 21) {
             setGameMessage("BlackJack! - Player Wins!");
-            
+            setPlayerMoney(prev => prev + betAmount*2)
         } else if (dealerSum === 21) {
             setGameMessage("Dealer has BlackJack! - Dealer Wins!");
         }
@@ -112,6 +118,7 @@ export default function BlackJack() {
         if (dealerSum > 21) {
             setDealerCards(dealerHand)
             setGameMessage("Dealer bust - Player Wins!");
+            setPlayerMoney(prev => prev + betAmount*2);
             setGameState("not active");
         } else {
         setDealerCards(dealerHand);
@@ -128,9 +135,21 @@ export default function BlackJack() {
         const playerSum = getCardSum(playerCards);
         console.log(`dealer sum: ${dealerSum}, player sum: ${playerSum}`);
         
-        if (dealerSum > playerSum) return "Dealer wins!";
-        else if (dealerSum < playerSum) return "Player wins!";
+        if (dealerSum > playerSum) {
+            return "Dealer wins!";
+        }
+        else if (dealerSum < playerSum) {
+            setPlayerMoney(prev => prev + betAmount*2);
+            return "Player wins!";
+        }
+        setPlayerMoney(prev => prev + betAmount);
         return "It's a tie!";
+    }
+
+    function callDadForMoney() {
+        setPlayerMoney(1000);
+        setGameMessage("Daddy sends you 1000€ !")
+        setGameState("not active");
     }
 
     return (
@@ -145,17 +164,22 @@ export default function BlackJack() {
                         <Sum title="Dealer" sum={showDown ? getCardSum(dealerCards) : getCardSum([dealerCards[0]])}/>
                     </div>
                 }
-                {gameState === "active" &&
-                    <div className="flex gap-1">
-                        <button className="bg-slate-900 text-white p-2 border-2 rounded-xl cursor-pointer" onClick={playerHit}>Hit</button>
-                        <button className="bg-slate-900 text-white p-2 border-2 rounded-xl cursor-pointer" onClick={stand}>Stand</button>
-                    </div>
-                }
+
                 {playerCards.length > 0 && 
                     <div>
                         <PlayerCards cards={playerCards}/>
                         <Sum title="Player" sum={getCardSum(playerCards)}/>
                     </div>
+                }
+                {gameState === "active" &&
+
+                <>
+                <h3>{`Pot: ${betAmount * 2}`}</h3>
+                <div className="flex gap-1">
+                    <button className="bg-slate-900 text-white p-2 border-2 rounded-xl cursor-pointer" onClick={playerHit}>Hit</button>
+                    <button className="bg-slate-900 text-white p-2 border-2 rounded-xl cursor-pointer" onClick={stand}>Stand</button>
+                </div>
+                </>
                 }
             </div>
             {gameState === "not active" && 
@@ -173,10 +197,18 @@ export default function BlackJack() {
                         value={betAmount}
                         onChange={(e) => setBetAmount(e.target.valueAsNumber)}
                     />
-                    <button className="bg-slate-900 text-white p-2 border-2 rounded-xl" onClick={startNewRound}>Start new round</button>
+                    <button className="bg-slate-900 text-white p-2 border-2 rounded-xl cursor-pointer" onClick={startNewRound}>Start new round</button>
                 </div>
             }
+            {gameState === "game over" &&
+                <div className="flex flex-col gap-4">
+                    <h1>No money?! Then I must ask you to leave! <br/> *You get kicked out of the casino...*</h1>
+                    <button className="bg-slate-900 text-white p-2 border-2 rounded-xl cursor-pointer" onClick={callDadForMoney}>Call sugar daddy for more money!</button>
+                </div>
+            }
+            
             <p>Money: <span className="text-green-500">{` ${playerMoney} €`}</span></p>
+
         </div>
     )
 }
