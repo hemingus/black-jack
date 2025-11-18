@@ -13,4 +13,4 @@ export type DeckResponse = {
     shuffled: boolean
 }
 
-export type GameState = "active" | "not active"
+export type GameState = "active" | "not active" | "game over"
