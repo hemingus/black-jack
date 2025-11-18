@@ -35,6 +35,11 @@ export default function BlackJack() {
     }, [])
 
     async function startNewRound() {
+        if (betAmount > playerMoney) {
+            setGameMessage(`Max bet is ${playerMoney}`);
+            return
+        }
+        setPlayerMoney(prev => prev - betAmount);
         setShowDown(false);
         setGameState("active");
         setGameMessage("Hit or Stand ?");
@@ -62,6 +67,7 @@ export default function BlackJack() {
             setGameMessage("Double BlackJack! - It's a tie!");
         } else if (playerSum === 21) {
             setGameMessage("BlackJack! - Player Wins!");
+            
         } else if (dealerSum === 21) {
             setGameMessage("Dealer has BlackJack! - Dealer Wins!");
         }
@@ -153,7 +159,7 @@ export default function BlackJack() {
                 }
             </div>
             {gameState === "not active" && 
-                <>
+                <div className="flex flex-col gap-2">
                     <label className="block text-sm font-medium text-gray-200 mb-1">
                         Bet amount:
                     </label>
@@ -168,8 +174,9 @@ export default function BlackJack() {
                         onChange={(e) => setBetAmount(e.target.valueAsNumber)}
                     />
                     <button className="bg-slate-900 text-white p-2 border-2 rounded-xl" onClick={startNewRound}>Start new round</button>
-                </>
+                </div>
             }
+            <p>Money: <span className="text-green-500">{` ${playerMoney} €`}</span></p>
         </div>
     )
 }
