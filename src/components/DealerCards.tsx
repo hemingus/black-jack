@@ -9,8 +9,8 @@ interface DealerCardsProps {
 export default function DealerCards({ cards, showDown }: DealerCardsProps ) {
     return (
         <div>
-            <h3 className="text-red-500">Dealer Cards</h3>
-            <div className="flex-row gap-1 flex-wrap">
+            <h3 className="text-orange-200">Dealer Cards</h3>
+            <div className="flex flex-row gap-1">
                 {showDown ? 
                 cards.map((card, index) => 
                     <img style={{width: "100px"}} key={card.code + index} src={card.image}/>)

@@ -13,8 +13,11 @@ export default function BlackJack() {
 
     const [dealerCards, setDealerCards] = useState<Array<Card>>([]);
     const [playerCards, setPlayerCards] = useState<Array<Card>>([]);
+
+    const [betAmount, setBetAmount] = useState<number>(0);
+    const [playerMoney, setPlayerMoney] = useState<number>(500);
     const [showDown, setShowDown] = useState<boolean>(true);
-    const [gameMessage, setGameMessage] = useState<string>("Hit or Stand ?");
+    const [gameMessage, setGameMessage] = useState<string>("Welcome to the blackjack table!");
 
     useEffect(() => {
         async function initDeck() {   
@@ -126,22 +129,47 @@ export default function BlackJack() {
 
     return (
         loading ? <p>loading...</p> :
-        <div>
-            {/* <button onClick={handleDealCards}>Get cards</button> */}            
-            <div className="flex-col bg-slate-700">
-                <h2 style={{color: "orange"}}>{gameMessage}</h2>
-                <DealerCards cards={dealerCards} showDown={showDown}/>
-                {dealerCards.length > 0 && <Sum title="Dealer" sum={showDown ? getCardSum(dealerCards) : getCardSum([dealerCards[0]])}/>}
-                {gameState === "active" &&
-                <>
-                <button onClick={playerHit}>Hit</button>
-                <button onClick={stand}>Stand</button>
-                </>
+        <div className="w-full flex flex-col justify-center items-center">            
+            <div className="w-full flex items-center justify-center flex-col gap-2 bg-linear-to-r from-green-950 via-green-900 to-green-950 p-4 rounded-xl">
+                <h2 className="text-emerald-300 text-2xl">{gameMessage}</h2>
+                
+                {dealerCards.length > 0 && 
+                    <div>
+                        <DealerCards cards={dealerCards} showDown={showDown}/>
+                        <Sum title="Dealer" sum={showDown ? getCardSum(dealerCards) : getCardSum([dealerCards[0]])}/>
+                    </div>
                 }
-                {playerCards && <PlayerCards cards={playerCards}/>}
-                <Sum title="Player" sum={getCardSum(playerCards)}/>
+                {gameState === "active" &&
+                    <div className="flex gap-1">
+                        <button className="bg-slate-900 text-white p-2 border-2 rounded-xl cursor-pointer" onClick={playerHit}>Hit</button>
+                        <button className="bg-slate-900 text-white p-2 border-2 rounded-xl cursor-pointer" onClick={stand}>Stand</button>
+                    </div>
+                }
+                {playerCards.length > 0 && 
+                    <div>
+                        <PlayerCards cards={playerCards}/>
+                        <Sum title="Player" sum={getCardSum(playerCards)}/>
+                    </div>
+                }
             </div>
-            {gameState === "not active" && <button onClick={startNewRound}>Start new round</button>}
+            {gameState === "not active" && 
+                <>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">
+                        Bet amount:
+                    </label>
+                    <input
+                        type="number"
+                        className="
+                            rounded-md bg-gray-800 border border-gray-700 
+                            px-3 py-2 text-gray-100 
+                            focus:outline-none focus:ring-2 focus:ring-blue-500
+                        "
+                        value={betAmount}
+                        onChange={(e) => setBetAmount(e.target.valueAsNumber)}
+                    />
+                    <button className="bg-slate-900 text-white p-2 border-2 rounded-xl" onClick={startNewRound}>Start new round</button>
+                </>
+            }
         </div>
     )
 }
